@@ -35,7 +35,7 @@ public class Chat {
     }
 
     public boolean isModeratedBy(Client client) {
-        return isMember(client) && moderatedBy.contains(client);
+        return moderatedBy.contains(client);
     }
 
     public void addMember(Client client) {
@@ -56,9 +56,9 @@ public class Chat {
     public void removeMember(Client client) {
         if (isMember(client)) {
             consistsOf.remove(client);
-            client.leaveChat(this);
             if (isModeratedBy(client))
                 moderatedBy.remove(client);
+            client.leaveChat(this);
         }
     }
 
@@ -88,6 +88,9 @@ public class Chat {
 
     public static void removeChat(Chat chat) {
         chats.remove(chat);
+        for(Client c : chat.consistsOf){
+            c.leaveChat(chat);
+        }
     }
 
     public static void showChats() {

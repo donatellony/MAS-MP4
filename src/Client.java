@@ -1,6 +1,7 @@
 import exceptions.InvalidClientDataException;
 import exceptions.UniqueClientException;
 
+import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.regex.Pattern;
@@ -11,6 +12,8 @@ public class Client {
 
     private HashSet<Chat> memberOf = new HashSet<>();
     private HashSet<Chat> moderatorOf = new HashSet<>();
+
+    private ArrayList<Transaction> transactions = new ArrayList<>();
 
     private String name;
     private String surname;
@@ -25,7 +28,35 @@ public class Client {
         addClient(this);
     }
 
-    public static void addClient(Client client) throws UniqueClientException {
+    //TOREMOVE
+    public void test() {
+        showChats();
+        showModeratedChats();
+        System.out.println();
+    }
+
+    public Transaction addTransaction(Seller seller, String description, LocalDate date, float price) {
+        return new Transaction(seller, this, description, date, price);
+    }
+
+    public void addTransaction(Transaction transaction) {
+        if (transaction.getBuyer().equals(this))
+            transactions.add(transaction);
+    }
+
+    public void removeTransaction(Transaction transaction) {
+        if (transactions.contains(transaction)) {
+            transactions.remove(transaction);
+            Transaction.removeTransaction(transaction);
+        }
+    }
+
+    public void showTransactions() {
+        for (Transaction transaction : transactions)
+            System.out.println(transaction);
+    }
+
+    private static void addClient(Client client) throws UniqueClientException {
         if (!clients.contains(client) && !emails.contains(client.getEmail())) {
             clients.add(client);
             emails.add(client.getEmail());
@@ -33,16 +64,17 @@ public class Client {
             throw new UniqueClientException("Client's email must be unique!");
     }
 
-    //TOREMOVE
-    public void test(){
-        showChats();
-        showModeratedChats();
-        System.out.println();
-    }
-
     public static void removeClient(Client client) {
         clients.remove(client);
         emails.remove(client.getEmail());
+        for (Chat member : client.memberOf) {
+            member.removeMember(client);
+        }
+    }
+
+    public static void showClients() {
+        for (Client c : clients)
+            System.out.println(c.toString());
     }
 
     public boolean isMember(Chat chat) {
@@ -93,11 +125,6 @@ public class Client {
         System.out.println("CLIENT " + getName() + " JOINED CHATS");
         for (Chat chat : memberOf)
             System.out.println(chat.getName());
-    }
-
-    public static void showClients() {
-        for (Client c : clients)
-            System.out.println(c.toString());
     }
 
     public String getName() {
