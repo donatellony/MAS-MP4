@@ -1,5 +1,6 @@
 import exceptions.InvalidClientDataException;
 import exceptions.UniqueClientException;
+import exceptions.XorAnimalException;
 
 import java.time.LocalDate;
 import java.util.ArrayList;
@@ -8,31 +9,53 @@ import java.util.regex.Pattern;
 
 public class Client {
     private static ArrayList<Client> clients = new ArrayList<>();
-    private static HashSet<String> emails = new HashSet<>();
+    private static HashSet<String> nicknames = new HashSet<>();
 
     private HashSet<Chat> memberOf = new HashSet<>();
     private HashSet<Chat> moderatorOf = new HashSet<>();
 
     private ArrayList<Transaction> transactions = new ArrayList<>();
 
+    private ArrayList<Animal> ownedAnimals = new ArrayList<>();
+
+    private String nickname; //unique
     private String name;
     private String surname;
     private String town;
-    private String email;
+    private String email; //own restriction
 
-    public Client(String name, String surname, String town, String email) throws InvalidClientDataException, UniqueClientException {
+    public Client(String name, String surname, String town, String email, String nickname) throws InvalidClientDataException, UniqueClientException {
         setName(name);
         setSurname(surname);
         setTown(town);
         setEmail(email);
+        setNickname(nickname);
         addClient(this);
     }
 
-    //TOREMOVE
     public void test() {
         showChats();
         showModeratedChats();
         System.out.println();
+    }
+
+    public void addOwnedAnimal(Animal animal) throws XorAnimalException {
+        if (animal != null && !ownedAnimals.contains(animal)) {
+            ownedAnimals.add(animal);
+            animal.addOwner(this);
+        }
+    }
+
+    public void removeOwnedAnimal(Animal animal) throws XorAnimalException {
+        if (animal != null && !ownedAnimals.contains(animal)) {
+            ownedAnimals.add(animal);
+            animal.removeOwner(this);
+        }
+    }
+
+    public void showOwnedAnimals() {
+        for (Animal animal : ownedAnimals)
+            System.out.println(animal);
     }
 
     public Transaction addTransaction(Seller seller, String description, LocalDate date, float price) {
@@ -57,16 +80,16 @@ public class Client {
     }
 
     private static void addClient(Client client) throws UniqueClientException {
-        if (!clients.contains(client) && !emails.contains(client.getEmail())) {
+        if (!clients.contains(client) && !nicknames.contains(client.getNickname())) {
             clients.add(client);
-            emails.add(client.getEmail());
+            nicknames.add(client.getNickname());
         } else
-            throw new UniqueClientException("Client's email must be unique!");
+            throw new UniqueClientException("Client nickname must be unique!");
     }
 
     public static void removeClient(Client client) {
         clients.remove(client);
-        emails.remove(client.getEmail());
+        nicknames.remove(client.getNickname());
         for (Chat member : client.memberOf) {
             member.removeMember(client);
         }
@@ -173,5 +196,26 @@ public class Client {
             this.email = email;
         else
             throw new InvalidClientDataException();
+    }
+
+    @Override
+    public String toString() {
+        return "Client " + getName() + " " + getSurname() + ", from " + getTown() + ", nickname: " + getNickname();
+    }
+
+    public String getNickname() {
+        return nickname;
+    }
+
+    public void setNickname(String nickname) throws InvalidClientDataException, UniqueClientException {
+        if (nickname == null)
+            throw new InvalidClientDataException();
+        if (nicknames.contains(nickname)) {
+            if (getNickname() == null)
+                throw new UniqueClientException("Client nickname must be unique!");
+            if(getNickname().equals(nickname))
+                return;
+        }
+        this.nickname = nickname;
     }
 }

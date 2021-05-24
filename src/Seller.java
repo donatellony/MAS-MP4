@@ -1,6 +1,9 @@
+import exceptions.AttributeSellerRestriction;
 import exceptions.InvalidSellerDataException;
+import exceptions.XorAnimalException;
 
 import java.time.LocalDate;
+import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
 import java.util.Comparator;
 
@@ -18,22 +21,47 @@ public class Seller {
 
     private ArrayList<Transaction> transactions = new ArrayList<>();
 
+    private ArrayList<Animal> animalsToSell = new ArrayList<>();
+
     private String name;
     private String surname;
     private String town;
+    private LocalDate birthDate;
+    private static final short minSellerAge = 16; // attribute restriction
 
     private float rating;
 
-    public Seller(String name, String surname, String town) throws InvalidSellerDataException {
+    public Seller(String name, String surname, String town, LocalDate birthDate) throws InvalidSellerDataException, AttributeSellerRestriction {
         setName(name);
         setSurname(surname);
         setTown(town);
+        setRating(0f);
+        setBirthDate(birthDate);
         addSeller(this);
     }
 
-    public Seller(String name, String surname, String town, float rating) throws InvalidSellerDataException {
-        this(name, surname, town);
+    public Seller(String name, String surname, String town, LocalDate birthDate, float rating) throws InvalidSellerDataException, AttributeSellerRestriction {
+        this(name, surname, town, birthDate);
         setRating(rating);
+    }
+
+    public void addAnimalToSell(Animal animal) throws XorAnimalException {
+        if (animal != null && !animalsToSell.contains(animal)) {
+            animalsToSell.add(animal);
+            animal.addSeller(this);
+        }
+    }
+
+    public void removeAnimalToSell(Animal animal) throws XorAnimalException {
+        if (animal != null && !animalsToSell.contains(animal)) {
+            animalsToSell.add(animal);
+            animal.removeSeller(this);
+        }
+    }
+
+    public void showAnimalsToSell() {
+        for (Animal animal : animalsToSell)
+            System.out.println(animal);
     }
 
     public Transaction addTransaction(Client buyer, String description, LocalDate date, float price) {
@@ -110,5 +138,22 @@ public class Seller {
             throw new InvalidSellerDataException();
         this.rating = rating;
         sellers.sort(Comparator.comparingDouble(Seller::getRating));
+    }
+
+    @Override
+    public String toString() {
+        return "Seller " + getName() + " " + getSurname() + ", from " + getTown() + ". His rating is: " + getRating();
+    }
+
+    public LocalDate getBirthDate() {
+        return birthDate;
+    }
+
+    public void setBirthDate(LocalDate birthDate) throws InvalidSellerDataException, AttributeSellerRestriction {
+        if (birthDate == null)
+            throw new InvalidSellerDataException();
+        if (ChronoUnit.YEARS.between(birthDate, LocalDate.now()) < minSellerAge)
+            throw new AttributeSellerRestriction(String.format("User must be at least (%s) years old to become the Seller!", minSellerAge));
+        this.birthDate = birthDate;
     }
 }

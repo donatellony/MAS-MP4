@@ -1,7 +1,4 @@
-import exceptions.InvalidChatDataException;
-import exceptions.InvalidClientDataException;
-import exceptions.InvalidSellerDataException;
-import exceptions.UniqueClientException;
+import exceptions.*;
 
 import java.time.LocalDate;
 
@@ -9,8 +6,8 @@ public class Main {
 
     public static void main(String[] args) {
         try {
-            Client client = new Client("Jan", "Kowalski", "Warszawa", "s18917@pjwstk.edu.pl");
-            Client moderator = new Client("Yehor", "Voiko", "Warszawa", "alamakota@gmail.com");
+            Client client = new Client("Jan", "Kowalski", "Warszawa", "s18917@pjwstk.edu.pl", "janki");
+            Client moderator = new Client("Yehor", "Voiko", "Warszawa", "alamakota@gmail.com", "s18917");
             Chat chat = new Chat("PJWSTK");
             client.joinChat(chat);
             moderator.moderateChat(chat);
@@ -48,8 +45,9 @@ public class Main {
             moderator.test();
 
             System.out.println("////////////////////////////////////////////\n");
+
             System.out.println("Testing the Client-Seller transactions");
-            Seller seller = new Seller("Selling", "Guy", "Warszawa");
+            Seller seller = new Seller("Selling", "Guy", "Warszawa", LocalDate.of(2001, 4, 5));
             Transaction dogToys = seller.addTransaction(moderator, "Some toys for dog", LocalDate.of(2021, 5, 22), 22.5f);
             System.out.println("==Added the transaction. Showing the transaction extension, seller and moderator transaction lists");
             Transaction.showTransactions();
@@ -69,7 +67,7 @@ public class Main {
             System.out.println();
             moderator.showTransactions();
             System.out.println("==Adding one more client for the last test");
-            Client buyer = new Client("Alina", "Muller", "Krakow", "alimu@gmail.com");
+            Client buyer = new Client("Alina", "Muller", "Krakow", "alimu@gmail.com", "alimu");
             buyer.addTransaction(seller, "Some toys for cat", LocalDate.of(2021, 5, 23), 30f);
             System.out.println("\nTransactions extension");
             Transaction.showTransactions();
@@ -77,7 +75,25 @@ public class Main {
             seller.showTransactions();
             System.out.println("\nModerator transactions");
             moderator.showTransactions();
-        } catch (UniqueClientException | InvalidClientDataException | InvalidChatDataException | InvalidSellerDataException e) {
+
+            System.out.println("////////////////////////////////////////////\n");
+
+            System.out.println("==Animal XOR association tests");
+            Animal animal = new Animal("Alex", "Shiba Inu", LocalDate.of(2020, 12, 20));
+            moderator.addOwnedAnimal(animal);
+            buyer.addOwnedAnimal(animal);
+//            seller.addAnimalToSell(animal);
+//            animal.addSeller(seller);
+            animal.showXorAssociation();
+
+            System.out.println("////////////////////////////////////////////\n");
+
+            System.out.println("==Testing the unique, own and attribute restriction");
+            //Client buyer = new Client("Alina", "Muller", "Krakow", "alimu@gmail.com", "alimu");
+//            Client nonUniqueClient = new Client("Ala", "Muller", "Krakow", "alamu@gmail.com", "alimu"); EXCEPTION
+//            Client notValidEmail = new Client("Martin", "Muller", "Krakow", "martin", "marteen");
+//            Seller youngSeller = new Seller("Janek", "Mlody", "Gdansk", LocalDate.of(2010, 5, 23));
+        } catch (UniqueClientException | InvalidClientDataException | InvalidChatDataException | InvalidSellerDataException | InvalidAnimalDataException | XorAnimalException | AttributeSellerRestriction e) {
             e.printStackTrace();
         }
     }
